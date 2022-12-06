@@ -46,4 +46,9 @@ class CoolUtil
 		}
 		return dumbArray;
 	}
+	
+	public static function spaceToDash(fuck:String):String
+		return fuck.replace(' ', '-');
+	public static function dashToSpace(fuck:String):String
+		return fuck.replace('-', ' ');
 }

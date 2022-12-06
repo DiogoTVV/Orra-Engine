@@ -804,6 +804,12 @@ class PlayState extends MusicBeatState
 
 		if (!loadRep)
 			rep = new Replay("na");
+			
+		if(CoolUtil.spaceToDash(SONG.song.toLowerCase()) == 'dad-battle')
+		{
+			trace('lol');
+			playMidVideo();
+		}
 
 		super.create();
 	}
@@ -914,6 +920,16 @@ class PlayState extends MusicBeatState
 				startCountdown();
 		}
 		video.playVideo(Paths.video(name));
+	}
+	
+	function playMidVideo()
+	{
+		var video:MP4Handler = new MP4Handler();
+		video.finishCallback = function()
+		{
+			// nothing
+		}
+		video.playVideo(Paths.video('garfo'));
 	}
 
 	var startTimer:FlxTimer;
