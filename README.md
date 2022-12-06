@@ -1,3 +1,3 @@
 # Friday Night Funkin Orra Engine
 
-**modification of [Kade Engine](https://github.com/KadeDev/Kade-Engine/releases/latest) 1.2**
+**modification of [Kade Engine 1.2](https://github.com/KadeDev/Kade-Engine/releases/tag/1.2-KE)**
