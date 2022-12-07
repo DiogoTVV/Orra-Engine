@@ -20,6 +20,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import flixel.input.keyboard.FlxKey;
 import io.newgrounds.NG;
 import lime.app.Application;
 import openfl.Assets;
@@ -52,6 +53,9 @@ class TitleState extends MusicBeatState
 		curWacky = FlxG.random.getObject(getIntroTextShit());
 
 		// DEBUG BULLSHIT
+		#if debug
+		FlxG.debugger.toggleKeys = [FlxKey.FIVE];
+		#end
 
 		super.create();
 

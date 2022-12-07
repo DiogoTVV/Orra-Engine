@@ -801,15 +801,11 @@ class PlayState extends MusicBeatState
 					startCountdown();
 			}
 		}
+		
+		//playCutscene('garfo');
 
 		if (!loadRep)
 			rep = new Replay("na");
-			
-		if(CoolUtil.spaceToDash(SONG.song.toLowerCase()) == 'dad-battle')
-		{
-			trace('lol');
-			playMidVideo();
-		}
 
 		super.create();
 	}
@@ -920,16 +916,6 @@ class PlayState extends MusicBeatState
 				startCountdown();
 		}
 		video.playVideo(Paths.video(name));
-	}
-	
-	function playMidVideo()
-	{
-		var video:MP4Handler = new MP4Handler();
-		video.finishCallback = function()
-		{
-			// nothing
-		}
-		video.playVideo(Paths.video('garfo'));
 	}
 
 	var startTimer:FlxTimer;
@@ -1630,6 +1616,22 @@ class PlayState extends MusicBeatState
 					strum.scale.set(mult,mult);
 				}
 			}
+			if(SONG.song.toLowerCase() == 'disruption')
+			{
+				for(strum in strumline.receptors.members)
+				{
+					var mult:Int = ((strum.ID % 2 == 0) ? 1 : -1);
+					var slowLerp:Float = (arrowLerp / 4);
+					
+					strum.x = strum.initialX + (Math.sin(slowLerp) * mult) * 30;
+					strum.y = strum.initialY + (Math.cos(slowLerp) * mult) * 30;
+					
+					strum.scale.x = 0.7 + Math.cos(slowLerp * 2) * 0.25;
+					strum.scale.y = 0.7 - Math.cos(slowLerp * 2) * 0.25;
+					
+					//strum.angle = Math.sin(slowLerp) * mult * 20;
+				}
+			}
 		}
 		
 		if (generatedMusic)
@@ -1674,12 +1676,23 @@ class PlayState extends MusicBeatState
 					if(SONG.song.toLowerCase() == "bopeebo")
 						daNote.alpha = (daNote.strumTime - Conductor.songPosition) / 1000;
 					
-					if(!daNote.isSustainNote && daReceptor != null)
-						daNote.scale.set(daReceptor.scale.x, daReceptor.scale.y);
+					if(daReceptor != null)
+					{
+						if(!daNote.isSustainNote)
+						{
+							daNote.scale.set(daReceptor.scale.x, daReceptor.scale.y);
+							daNote.angle = daReceptor.angle;
+						}
+						else
+						{
+							// whatever
+						}
+					}
 					
-					//if(daNote.isSustainNote && FlxG.save.data.downscroll)
-					//	if(daNote.animation.curAnim.name.endsWith('end'))
-					//		daNote.flipX = true;
+					if(daNote.isSustainNote
+					&& strumline.downscroll
+					&& daNote.animation.curAnim.name.endsWith('end'))
+						daNote.flipY = true;
 					//trace(daNote.y);
 					// WIP interpolation shit? Need to fix the pause issue
 					// daNote.y = (strumLine.y - (songTime - daNote.strumTime) * (0.45 * PlayState.SONG.speed));
@@ -1696,9 +1709,8 @@ class PlayState extends MusicBeatState
 						else
 						{
 							if (newInput && strumline.isPlayer && !strumline.autoplay && !daNote.mustMiss)
-								//noteMiss(strumline.character, daNote.noteData);
 								for(character in strumline.characters)
-									noteMiss(character, daNote.noteData);
+									noteMiss(character, daNote);
 						}
 	
 						daNote.active = false;
@@ -2274,11 +2286,11 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	function noteMiss(character:Character, direction:Int = 1):Void
+	function noteMiss(character:Character, note:Note):Void
 	{
 		//if (!character.stunned)
 		//{
-			health -= 0.04;
+			health -= note.healthLoss;
 			if (combo > 5 && gf.animOffsets.exists('sad'))
 			{
 				gf.playAnim('sad');
@@ -2292,18 +2304,8 @@ class PlayState extends MusicBeatState
 			FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 			// FlxG.sound.play(Paths.sound('missnote1'), 1, false);
 			// FlxG.log.add('played imss note');
-
-			switch (direction)
-			{
-				case 0:
-					character.playAnim('singLEFTmiss', true);
-				case 1:
-					character.playAnim('singDOWNmiss', true);
-				case 2:
-					character.playAnim('singUPmiss', true);
-				case 3:
-					character.playAnim('singRIGHTmiss', true);
-			}
+			
+			character.playAnim(character.singAnims[note.noteData] + 'miss', true);
 
 			updateAccuracy();
 		//}
@@ -2369,8 +2371,7 @@ class PlayState extends MusicBeatState
 			badNoteCheck();
 		}
 	}
-
-	var singAnims:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
+	
 	function goodNoteHit(strumline:Strumline, note:Note):Void
 	{
 		if (!note.wasGoodHit)
@@ -2384,7 +2385,7 @@ class PlayState extends MusicBeatState
 							strum.y += 10 * (strumline.downscroll ? -1 : 1);
 					default:
 						for(character in strumline.characters)
-							noteMiss(character, note.noteData);
+							noteMiss(character, note);
 				}
 				killNote(strumline, note);
 				return;
@@ -2402,7 +2403,7 @@ class PlayState extends MusicBeatState
 					totalNotesHit += 1;
 			
 				if (note.noteData >= 0)
-					health += 0.023;
+					health += note.healthGain;
 				else
 					health += 0.004;
 				
@@ -2415,7 +2416,7 @@ class PlayState extends MusicBeatState
 			for(character in strumline.characters)
 			{
 				character.holdTimer = 0;
-				character.playAnim(singAnims[note.noteData], true);
+				character.playAnim(character.singAnims[note.noteData], true);
 			}
 		
 			for(spr in strumline.receptors.members)
@@ -2530,6 +2531,14 @@ class PlayState extends MusicBeatState
 		super.stepHit();
 		if (FlxG.sound.music.time > Conductor.songPosition + 20 || FlxG.sound.music.time < Conductor.songPosition - 20)
 			resyncVocals();
+		
+		if(SONG.song.toLowerCase() == 'dadbattle')
+		{	
+			if(curStep == 48)
+			{
+				
+			}
+		}
 	}
 
 	var lightningStrikeBeat:Int = 0;

@@ -18,6 +18,7 @@ class Character extends FlxSprite
 	public var curCharacter:String = 'bf';
 
 	public var holdTimer:Float = 0;
+	public var singAnims:Array<String> = ['singLEFT', 'singDOWN', 'singUP', 'singRIGHT'];
 
 	public function new(x:Float, y:Float, ?character:String = "bf", ?isPlayer:Bool = false)
 	{
@@ -506,7 +507,11 @@ class Character extends FlxSprite
 		if (isPlayer)
 		{
 			flipX = !flipX;
-
+			
+			// Doesn't flip for BF, since his are already in the right place???
+			if (!curCharacter.startsWith('bf'))
+				invertLeftRight();
+			/*
 			// Doesn't flip for BF, since his are already in the right place???
 			if (!curCharacter.startsWith('bf'))
 			{
@@ -523,7 +528,15 @@ class Character extends FlxSprite
 					animation.getByName('singLEFTmiss').frames = oldMiss;
 				}
 			}
+			*/
 		}
+	}
+	
+	function invertLeftRight():Void
+	{
+		var oldLeft = singAnims[0];
+		singAnims[0] = singAnims[3];
+		singAnims[3] = oldLeft;
 	}
 
 	override function update(elapsed:Float)
@@ -611,15 +624,12 @@ class Character extends FlxSprite
 
 		if (curCharacter == 'gf')
 		{
-			//danced = (AnimName == 'singLEFT');
-			if(AnimName == 'singLEFT')
-				danced = true;
-			if(AnimName == 'singRIGHT')
-				danced = false;
-			
-			if (AnimName == 'singUP' || AnimName == 'singDOWN')
+			if(AnimName.startsWith('sing'))
 			{
-				danced = !danced;
+				danced = (AnimName == 'singLEFT');
+			
+				if (AnimName == 'singUP' || AnimName == 'singDOWN')
+					danced = !danced;
 			}
 		}
 		

@@ -21,6 +21,9 @@ class Note extends FlxSprite
 	public var wasGoodHit:Bool = false;
 	public var prevNote:Note;
 	public var strumline:Strumline;
+	
+	public var healthGain:Float = 0.06; // 0.023
+	public var healthLoss:Float = 0.08; // 0.04
 
 	public var sustainLength:Float = 0;
 	public var isSustainNote:Bool = false;
